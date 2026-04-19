@@ -10,9 +10,11 @@ const Sidebar: React.FC = () => {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
+  const [newBoardColor, setNewBoardColor] = useState("bg-purple-500");
   const [creating, setCreating] = useState(false);
   const [boards, setBoards] = useState<any[]>([]);
   const [loadingBoards, setLoadingBoards] = useState(false);
+  const [taskCounts, setTaskCounts] = useState<Record<number, number>>({});
   const avatarRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -23,6 +25,18 @@ const Sidebar: React.FC = () => {
     try {
       const res = await api.get("boards");
       setBoards(res.data || []);
+
+      // Fetch task counts for each board
+      const counts: Record<number, number> = {};
+      for (const board of res.data || []) {
+        try {
+          const tasksRes = await api.get(`tasks?board_id=${board.id}`);
+          counts[board.id] = (tasksRes.data || []).length;
+        } catch {
+          counts[board.id] = 0;
+        }
+      }
+      setTaskCounts(counts);
     } catch (err) {
       setBoards([]);
     } finally {
@@ -30,23 +44,55 @@ const Sidebar: React.FC = () => {
     }
   };
 
+  // Color options for boards
+  const colorOptions = [
+    { name: "bg-purple-500", tailwind: "bg-purple-500" },
+    { name: "bg-blue-500", tailwind: "bg-blue-500" },
+    { name: "bg-pink-500", tailwind: "bg-pink-500" },
+    { name: "bg-green-500", tailwind: "bg-green-500" },
+    { name: "bg-orange-500", tailwind: "bg-orange-500" },
+    { name: "bg-red-500", tailwind: "bg-red-500" },
+    { name: "bg-indigo-500", tailwind: "bg-indigo-500" },
+    { name: "bg-cyan-500", tailwind: "bg-cyan-500" },
+  ];
+
+  // Get board color from database or default
+  const getBoardColor = (board: any) => {
+    if (board.color) {
+      return board.color;
+    }
+    // Fallback to ID-based color if no color in DB
+    const colors = [
+      "bg-purple-500",
+      "bg-blue-500",
+      "bg-pink-500",
+      "bg-green-500",
+      "bg-orange-500",
+      "bg-red-500",
+      "bg-indigo-500",
+      "bg-cyan-500",
+    ];
+    return colors[board.id % colors.length];
+  };
+
   // Create a new board
   const handleCreateBoard = async () => {
-    console.log("handleCreateBoard called", newBoardName);
     if (!newBoardName.trim()) return;
     setCreating(true);
     try {
-      console.log("Before api.post");
-      const res = await api.post("boards", { name: newBoardName });
-      console.log("api.post success", res);
+      const res = await api.post("boards", {
+        name: newBoardName,
+        color: newBoardColor,
+      });
       setNewBoardName("");
+      setNewBoardColor("bg-purple-500");
       setShowCreate(false);
       fetchBoards();
       // Navigate to the new board
       const slug = encodeURIComponent(newBoardName.toLowerCase());
       navigate(`/board/${slug}`);
     } catch (err: any) {
-      console.error("Error in api.post", err);
+      console.error("Error creating board", err);
       toast.error(
         err?.response?.data?.error?.message ||
           err?.response?.data?.error ||
@@ -91,46 +137,116 @@ const Sidebar: React.FC = () => {
         </span>
       </div>
       {/* Navigation */}
-      <nav className="flex-1">
-        <ul className="space-y-1">
-          <li className="flex items-center justify-between px-3 py-2">
-            <span className="font-medium text-[15px] text-gray-700">
-              Boards <span className="text-lg">→</span>
-            </span>
-            <button
-              className="ml-2 px-2 py-1 rounded bg-primary-50 text-primary-700 text-xs font-semibold border border-primary-100 hover:bg-primary-100 transition"
-              onClick={() => setShowCreate(true)}
-              title="Create new board"
-            >
-              + Novo
-            </button>
-          </li>
-          {loadingBoards ? (
-            <li className="px-3 py-2 text-gray-400 text-sm">Loading...</li>
-          ) : boards.length === 0 ? (
-            <li className="px-3 py-2 text-gray-400 text-sm">No boards</li>
-          ) : (
-            boards.map((board) => {
-              const slug = encodeURIComponent(board.name.toLowerCase());
-              return (
-                <li key={board.id} className="px-3 py-2">
-                  <NavLink
-                    to={`/board/${slug}`}
-                    className={({ isActive }) =>
-                      `block rounded px-2 py-1 font-medium text-sm transition ${
-                        isActive
-                          ? "bg-primary-50 text-primary-700"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`
-                    }
-                  >
-                    {board.name}
-                  </NavLink>
-                </li>
-              );
-            })
-          )}
-        </ul>
+      <nav className="flex-1 flex flex-col">
+        <div className="flex-1">
+          {/* Boards Section */}
+          <div className="mb-8">
+            <div className="px-3 py-2 mb-3 flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Your Boards
+              </span>
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded border border-gray-300 bg-gray-50 text-xs font-semibold text-gray-700">
+                {boards.length}
+              </span>
+            </div>
+            <div className="px-3 py-2 mb-2">
+              <button
+                className="w-full px-2 py-1 rounded bg-primary-50 text-primary-700 text-xs font-semibold border border-primary-100 hover:bg-primary-100 transition"
+                onClick={() => setShowCreate(true)}
+                title="Create new board"
+              >
+                + New Board
+              </button>
+            </div>
+            <ul className="space-y-1">
+              {loadingBoards ? (
+                <li className="px-3 py-2 text-gray-400 text-sm">Loading...</li>
+              ) : boards.length === 0 ? (
+                <li className="px-3 py-2 text-gray-400 text-sm">No boards</li>
+              ) : (
+                boards.map((board) => {
+                  const slug = encodeURIComponent(board.name.toLowerCase());
+                  const boardColor = getBoardColor(board);
+                  return (
+                    <li key={board.id} className="px-1">
+                      <NavLink
+                        to={`/board/${slug}`}
+                        className={({ isActive }) =>
+                          `flex items-center justify-between px-3 py-2 rounded-lg font-medium text-sm transition ${
+                            isActive
+                              ? "bg-primary-50 text-primary-700"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`
+                        }
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div
+                            className={`w-2 h-2 rounded-full ${boardColor} flex-shrink-0`}
+                          />
+                          <span className="truncate">{board.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          <span className="inline-flex items-center justify-center px-2 py-1 rounded border border-gray-300 bg-gray-50 text-xs font-semibold text-gray-700">
+                            {taskCounts[board.id] || 0}
+                          </span>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            className="text-gray-400"
+                          >
+                            <path
+                              d="M6 12l4-4-4-4"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      </NavLink>
+                    </li>
+                  );
+                })
+              )}
+            </ul>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-gray-200 my-6" />
+
+          {/* Settings Section */}
+          <div>
+            <div className="px-3 py-2 mb-3">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Settings
+              </span>
+            </div>
+            <ul className="space-y-1">
+              <li className="px-1">
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition ${
+                      isActive
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`
+                  }
+                >
+                  <svg width="18" height="18" fill="none" viewBox="0 0 20 20">
+                    <path
+                      d="M10 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm0 1.25c-3.452 0-5 1.865-5 3.75v1.25h10v-1.25c0-1.885-1.548-3.75-5-3.75z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Profile
+                </NavLink>
+              </li>
+            </ul>
+          </div>
+        </div>
       </nav>
       {/* Board creation popup */}
       {showCreate && (
@@ -140,7 +256,11 @@ const Sidebar: React.FC = () => {
               type="button"
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition shadow-sm"
               aria-label="Close modal"
-              onClick={() => setShowCreate(false)}
+              onClick={() => {
+                setShowCreate(false);
+                setNewBoardName("");
+                setNewBoardColor("bg-purple-500");
+              }}
             >
               <svg width="18" height="18" fill="none" viewBox="0 0 18 18">
                 <path
@@ -163,6 +283,28 @@ const Sidebar: React.FC = () => {
               autoFocus
               disabled={creating}
             />
+            {/* Color selection */}
+            <div className="mb-4">
+              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3 block">
+                Choose color
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color.name}
+                    className={`w-5 h-5 rounded-full transition-all ${
+                      color.tailwind
+                    } ${
+                      newBoardColor === color.name
+                        ? "ring-2 ring-offset-2 ring-gray-900 scale-110"
+                        : "hover:scale-105"
+                    }`}
+                    onClick={() => setNewBoardColor(color.name)}
+                    title={color.name}
+                  />
+                ))}
+              </div>
+            </div>
             <button
               className="w-full px-4 py-2 rounded-[8px] border border-[#6941C6] bg-[#6941C6] text-white font-semibold shadow-sm hover:bg-[#53389E] focus:outline-none focus:ring-2 focus:ring-[#6941C6]/40 transition"
               onClick={handleCreateBoard}
