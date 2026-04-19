@@ -1,42 +1,42 @@
 # getYourShitDone – Monorepo Full-Stack
 
-## Estrutura
+## Structure
 
 - `/frontend`: React + Vite + TypeScript + Tailwind CSS
 - `/backend`: Node.js + Express + TypeScript
-- `docker-compose.yml`: PostgreSQL local
-- Scripts SQL: `backend/schema.sql`, `backend/seed.sql`
+- `docker-compose.yml`: Local PostgreSQL
+- SQL scripts: `backend/schema.sql`, `backend/seed.sql`
 
-## Rodando Localmente
+## Running Locally
 
 1. **Clone the repository:**
    ```bash
    git clone <repo-url>
    cd <repo>
    ```
-2. **Suba o banco de dados:**
+2. **Start the database:**
    ```bash
    docker-compose up -d
    ```
 3. **Configure environment variables:**
-   - Copie `.env.example` para `.env` em `/backend` e `/frontend`.
+   - Copy `.env.example` to `.env` in `/backend` and `/frontend`.
    - Adjust values if necessary.
 4. **Install dependencies:**
    ```bash
    cd backend && npm install
    cd ../frontend && npm install
    ```
-5. **Rode as migrations e seeds:**
+5. **Run migrations and seed data:**
    ```bash
    cd backend
    npm run db:migrate
    npm run db:seed
    ```
-6. **Inicie backend e frontend:**
+6. **Start backend and frontend:**
    ```bash
    npm run dev:all
    ```
-   Ou, em terminais separados:
+   Or, in separate terminals:
    ```bash
    cd backend && npm run dev
    cd frontend && npm run dev
@@ -44,15 +44,15 @@
 
 ## Useful Scripts
 
-- `npm run dev:all` – Sobe frontend + backend juntos
-- `npm run db:migrate` – Executa migrations
-- `npm run db:seed` – Popula banco com dados de exemplo
+- `npm run dev:all` – Starts frontend + backend together
+- `npm run db:migrate` – Runs migrations
+- `npm run db:seed` – Seeds the database with sample data
 
-## Deploy Futuro
+## Future Deployment
 
-- **Supabase:** Crie projeto, configure `DATABASE_URL` no backend.
-- **Vercel:** Deploy do frontend.
-- **Railway/Render:** Deploy do backend.
+- **Supabase:** Create a project and configure `DATABASE_URL` in the backend.
+- **Vercel:** Deploy the frontend.
+- **Railway/Render:** Deploy the backend.
 - **Variables:**
   - Backend: `DATABASE_URL`, `JWT_SECRET`, `PORT`
   - Frontend: `VITE_API_URL`
@@ -61,11 +61,11 @@
 ## Notes
 
 - Stateless backend (JWT, no in-memory sessions)
-- Frontend usa env vars VITE\_
+- Frontend uses `VITE_` env vars
 - Typed TypeScript code
 - Validation with zod
-- Toasts com react-hot-toast
-- Drag-and-drop com @dnd-kit/core
+- Toasts with `react-hot-toast`
+- Drag-and-drop with `@dnd-kit/core`
 
 ---
 
