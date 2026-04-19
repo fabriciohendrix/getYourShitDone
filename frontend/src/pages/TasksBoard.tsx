@@ -31,6 +31,21 @@ const columnNames = {
   backlog: "Backlog",
 };
 
+const getBoardColor = (board: any) => {
+  if (board?.color) return board.color;
+  const colors = [
+    "bg-purple-500",
+    "bg-blue-500",
+    "bg-pink-500",
+    "bg-green-500",
+    "bg-orange-500",
+    "bg-red-500",
+    "bg-indigo-500",
+    "bg-cyan-500",
+  ];
+  return colors[(board?.id ?? 0) % colors.length];
+};
+
 type TasksBoardProps = { boardSlug?: string };
 const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -313,15 +328,23 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
   return (
     <div className="p-8 font-sans bg-gray-50 min-h-screen">
       <div className="mb-8 bg-white rounded-md shadow-card p-6 flex items-center justify-between border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {board ? board.name : "My Tasks"}
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          {board && (
+            <span
+              className={`w-3 h-3 rounded-full ${getBoardColor(board)} flex-shrink-0`}
+              aria-hidden="true"
+            />
+          )}
+          <span>{board ? board.name : "My Tasks"}</span>
         </h1>
         <div className="flex items-center gap-3">
           {board && (
             <button
-              className="px-4 py-2 rounded-[8px] border border-red-200 bg-white text-red-600 font-semibold text-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200 transition flex items-center gap-2"
+              className="w-9 h-9 rounded-[8px] border border-red-200 bg-white text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200 transition flex items-center justify-center"
               type="button"
               onClick={() => setShowDeleteBoardModal(true)}
+              aria-label="Delete board"
+              title="Delete board"
             >
               <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                 <path
@@ -332,7 +355,6 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
                   strokeLinejoin="round"
                 />
               </svg>
-              Delete Board
             </button>
           )}
           <button
