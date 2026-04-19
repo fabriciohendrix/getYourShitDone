@@ -48,6 +48,7 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
   const [board, setBoard] = useState<any>(null);
   const [boards, setBoards] = useState<any[]>([]);
   const [loadingBoards, setLoadingBoards] = useState(true);
+  const [showDeleteBoardModal, setShowDeleteBoardModal] = useState(false);
 
   // Fetch boards from backend and select board by slug
   useEffect(() => {
@@ -248,6 +249,20 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
     setPendingPriorityChange(null);
   };
 
+  // Function to delete the current board
+  const handleDeleteBoard = async () => {
+    if (!boardId) return;
+    try {
+      await api.delete(`boards/${boardId}`);
+      toast.success("Board deleted!");
+      window.location.href = "/";
+    } catch {
+      toast.error("Error deleting board");
+    } finally {
+      setShowDeleteBoardModal(false);
+    }
+  };
+
   // Function to create a new task
   const handleCreate = async (data: any) => {
     if (!data.title.trim()) {
@@ -305,29 +320,49 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
         <h1 className="text-2xl font-bold text-gray-900">
           {board ? board.name : "My Tasks"}
         </h1>
-        <button
-          className="px-5 py-2 rounded-[8px] bg-[#6941C6] text-white font-semibold text-sm shadow-sm hover:bg-[#53389E] focus:outline-none focus:ring-2 focus:ring-[#6941C6]/40 transition border border-[#6941C6] flex items-center gap-2"
-          type="button"
-          onClick={() => setShowAddModal(true)}
-        >
-          <svg
-            width="16"
-            height="16"
-            fill="none"
-            viewBox="0 0 16 16"
-            aria-hidden="true"
-            focusable="false"
+        <div className="flex items-center gap-3">
+          {board && (
+            <button
+              className="px-4 py-2 rounded-[8px] border border-red-200 bg-white text-red-600 font-semibold text-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200 transition flex items-center gap-2"
+              type="button"
+              onClick={() => setShowDeleteBoardModal(true)}
+            >
+              <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+                <path
+                  d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333A1.333 1.333 0 0 1 11.333 14.667H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Delete Board
+            </button>
+          )}
+          <button
+            className="px-5 py-2 rounded-[8px] bg-[#6941C6] text-white font-semibold text-sm shadow-sm hover:bg-[#53389E] focus:outline-none focus:ring-2 focus:ring-[#6941C6]/40 transition border border-[#6941C6] flex items-center gap-2"
+            type="button"
+            onClick={() => setShowAddModal(true)}
           >
-            <path
-              d="M8 3.333v9.334M3.333 8h9.334"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Add new task
-        </button>
+            <svg
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M8 3.333v9.334M3.333 8h9.334"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Add new task
+          </button>
+        </div>
       </div>
       {/* Add task modal */}
       <TaskFormModal
@@ -337,6 +372,14 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
           handleCreate(data);
           setShowAddModal(false);
         }}
+      />
+      {/* Delete board modal */}
+      <ConfirmModal
+        open={showDeleteBoardModal}
+        onClose={() => setShowDeleteBoardModal(false)}
+        onConfirm={handleDeleteBoard}
+        message={`Are you sure you want to delete the board "${board?.name}"? This will also delete all tasks in this board.`}
+        confirmText="Delete Board"
       />
       <DndContext
         collisionDetection={closestCenter}
