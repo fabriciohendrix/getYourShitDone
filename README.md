@@ -1,4 +1,4 @@
-# Prio Tasks – Monorepo Full-Stack
+# getYourShitDone – Monorepo Full-Stack
 
 ## Estrutura
 
