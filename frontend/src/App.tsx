@@ -8,7 +8,8 @@ import TasksBoard from "./pages/TasksBoard";
 import { useParams } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user) return <Navigate to="/login" />;
   return <>{children}</>;
 }

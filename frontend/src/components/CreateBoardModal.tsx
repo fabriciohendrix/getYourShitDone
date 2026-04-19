@@ -40,7 +40,7 @@ const CreateBoardModal: React.FC<Props> = ({ isOpen, onClose, onCreated }) => {
     try {
       await api.post("boards", { name, color });
       onCreated();
-      const slug = encodeURIComponent(name.toLowerCase());
+      const slug = name.toLowerCase().replace(/\s+/g, "-");
       handleClose();
       navigate(`/board/${slug}`);
     } catch (err: any) {

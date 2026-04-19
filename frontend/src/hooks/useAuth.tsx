@@ -4,18 +4,21 @@ import api from "../api";
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   setUser: (user: User | null) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  loading: true,
   setUser: () => {},
   logout: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -33,15 +36,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         })
         .catch((err) => {
           if (err.response && err.response.status === 401) {
-            // Clear everything when detecting invalid token
             localStorage.clear();
             setUser(null);
           } else {
             setUser(null);
           }
-        });
+        })
+        .finally(() => setLoading(false));
     } else {
       setUser(null);
+      setLoading(false);
     }
   }, []);
 
@@ -57,7 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

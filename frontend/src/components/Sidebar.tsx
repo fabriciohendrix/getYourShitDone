@@ -120,7 +120,7 @@ const Sidebar: React.FC = () => {
                 <li className="px-3 py-2 text-gray-400 text-sm">No boards</li>
               ) : (
                 boards.map((board) => {
-                  const slug = encodeURIComponent(board.name.toLowerCase());
+                  const slug = board.name.toLowerCase().replace(/\s+/g, "-");
                   const boardColor = getBoardColor(board);
                   return (
                     <li key={board.id} className="px-1">

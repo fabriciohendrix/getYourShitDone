@@ -58,12 +58,8 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
         const res = await api.get("boards");
         setBoards(res.data);
         if (boardSlug) {
-          // boardSlug can be decoded, but encodeURIComponent(b.name.toLowerCase()) is encoded
-          // To ensure matching, compare both as decoded
           const found = res.data.find(
-            (b: any) =>
-              decodeURIComponent(encodeURIComponent(b.name.toLowerCase())) ===
-              decodeURIComponent(boardSlug),
+            (b: any) => b.name.toLowerCase().replace(/\s+/g, "-") === boardSlug,
           );
           setBoard(found || null);
           setBoardId(found ? found.id : null);
