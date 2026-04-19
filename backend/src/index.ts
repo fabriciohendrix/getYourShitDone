@@ -10,12 +10,20 @@ import { authMiddleware } from "./middleware/auth";
 dotenv.config();
 
 const app = express();
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5175",
+  process.env.FRONTEND_URL,
+]
+  .filter(Boolean)
+  .flatMap((origin) => origin!.split(",").map((item) => item.trim()))
+  .filter(Boolean);
+
 app.use(json());
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = ["http://localhost:5173", "http://localhost:5175"];
-      if (!origin || allowed.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
