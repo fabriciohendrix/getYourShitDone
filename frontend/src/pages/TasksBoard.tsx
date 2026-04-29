@@ -19,6 +19,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import toast from "react-hot-toast";
+import { Trash01, Plus } from "@untitledui/icons";
+import { Button } from "@/components/base/buttons/button";
 
 type ColumnType = "in_progress" | "backlog";
 
@@ -322,60 +324,32 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
   };
 
   return (
-    <div className="p-8 font-sans bg-gray-50 min-h-screen">
-      <div className="mb-8 bg-white rounded-md shadow-card p-6 flex items-center justify-between border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+    <div className="p-4 md:p-8 min-h-screen">
+      <div className="mb-6 md:mb-8 rounded-xl bg-primary shadow-xs ring-1 ring-primary p-4 md:p-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl md:text-2xl font-bold text-primary flex items-center gap-3">
           {board && (
-            <span
-              className={`w-3 h-3 rounded-full ${getBoardColor(board)} flex-shrink-0`}
-              aria-hidden="true"
-            />
+            <span className={`w-3 h-3 rounded-full ${getBoardColor(board)} shrink-0`} aria-hidden="true" />
           )}
           <span>{board ? board.name : "My Tasks"}</span>
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {board && (
-            <button
-              className="w-9 h-9 rounded-[8px] border border-red-200 bg-white text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200 transition flex items-center justify-center"
-              type="button"
+            <Button
+              color="secondary-destructive"
+              size="sm"
+              iconLeading={Trash01}
               onClick={() => setShowDeleteBoardModal(true)}
               aria-label="Delete board"
-              title="Delete board"
-            >
-              <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-                <path
-                  d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333A1.333 1.333 0 0 1 11.333 14.667H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            />
           )}
-          <button
-            className="px-5 py-2 rounded-[8px] bg-[#6941C6] text-white font-semibold text-sm shadow-sm hover:bg-[#53389E] focus:outline-none focus:ring-2 focus:ring-[#6941C6]/40 transition border border-[#6941C6] flex items-center gap-2"
-            type="button"
+          <Button
+            color="primary"
+            size="sm"
+            iconLeading={Plus}
             onClick={() => setShowAddModal(true)}
           >
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M8 3.333v9.334M3.333 8h9.334"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Add new task
-          </button>
+            Add task
+          </Button>
         </div>
       </div>
       {/* Add task modal */}
@@ -405,7 +379,7 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
           onClose={handleCancelPriority}
           onConfirm={handleConfirmPriority}
         />
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {tasks.filter(
             (t) => t.column === "in_progress" || t.column === "backlog",
           ).length === 0 && !loading ? (
