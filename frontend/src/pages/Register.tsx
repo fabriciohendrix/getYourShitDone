@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../api";
-import { useAuth } from "../hooks/useAuth";
 import { z } from "zod";
 import toast from "react-hot-toast";
+import { Mail01, Lock01, User01 } from "@untitledui/icons";
+import api from "../api";
+import { useAuth } from "../hooks/useAuth";
+import { Input } from "@/components/base/input/input";
+import { Button } from "@/components/base/buttons/button";
+import BrandLogo from "../components/BrandLogo";
 
 const schema = z.object({
   email: z.string().email(),
@@ -17,10 +21,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = schema.safeParse(form);
@@ -31,7 +31,6 @@ const Register = () => {
     setLoading(true);
     try {
       await api.post("auth/register", form);
-      // Automatic login after registration
       const loginRes = await api.post("auth/login", {
         email: form.email,
         password: form.password,
@@ -48,49 +47,54 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow w-80 space-y-4"
-      >
-        <h2 className="text-2xl font-bold mb-4">Register</h2>
-        <input
-          name="name"
-          placeholder="Name"
-          value={form.name}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-        />
-        <button
-          type="submit"
-          className="btn btn-primary w-full"
-          disabled={loading}
-        >
-          {loading ? "Registering..." : "Register"}
-        </button>
-        <div className="text-sm text-center">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-600">
-            Sign in
-          </Link>
+    <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center gap-4">
+          <BrandLogo className="h-12 w-12" />
+          <div className="text-center">
+            <h1 className="text-display-xs font-semibold text-primary">#getYourShitDone</h1>
+            <p className="mt-1 text-sm text-tertiary">Create your account</p>
+          </div>
         </div>
-      </form>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 rounded-xl bg-primary p-8 shadow-lg ring-1 ring-primary">
+          <Input
+            label="Name"
+            placeholder="Your name"
+            icon={User01}
+            value={form.name}
+            onChange={(v) => setForm((f) => ({ ...f, name: v }))}
+            isRequired
+          />
+          <Input
+            type="email"
+            label="Email"
+            placeholder="you@example.com"
+            icon={Mail01}
+            value={form.email}
+            onChange={(v) => setForm((f) => ({ ...f, email: v }))}
+            isRequired
+          />
+          <Input
+            type="password"
+            label="Password"
+            placeholder="••••••••"
+            icon={Lock01}
+            value={form.password}
+            onChange={(v) => setForm((f) => ({ ...f, password: v }))}
+            isRequired
+          />
+          <Button type="submit" color="primary" size="md" isLoading={loading} className="w-full mt-1">
+            Create account
+          </Button>
+          <p className="text-center text-sm text-tertiary">
+            Already have an account?{" "}
+            <Link to="/login" className="font-semibold text-brand-secondary hover:text-brand-secondary_hover">
+              Sign in
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

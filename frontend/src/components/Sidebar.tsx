@@ -1,9 +1,13 @@
 import React, { useState, useRef } from "react";
 import { NavLink } from "react-router-dom";
+import { ChevronRight, Settings01, LogOut01, Plus } from "@untitledui/icons";
 import { useAuth } from "../hooks/useAuth";
 import api from "../api";
 import BrandLogo from "./BrandLogo";
 import CreateBoardModal from "./CreateBoardModal";
+import { Button } from "@/components/base/buttons/button";
+import { Avatar } from "@/components/base/avatar/avatar";
+import { cx } from "@/utils/cx";
 
 const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -12,17 +16,13 @@ const Sidebar: React.FC = () => {
   const [boards, setBoards] = useState<any[]>([]);
   const [loadingBoards, setLoadingBoards] = useState(false);
   const [taskCounts, setTaskCounts] = useState<Record<number, number>>({});
-  const avatarRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Fetch boards for the logged-in user
   const fetchBoards = async () => {
     setLoadingBoards(true);
     try {
       const res = await api.get("boards");
       setBoards(res.data || []);
-
-      // Fetch task counts for each board
       const counts: Record<number, number> = {};
       for (const board of res.data || []) {
         try {
@@ -33,245 +33,154 @@ const Sidebar: React.FC = () => {
         }
       }
       setTaskCounts(counts);
-    } catch (err) {
+    } catch {
       setBoards([]);
     } finally {
       setLoadingBoards(false);
     }
   };
 
-  // Get board color from database or default
   const getBoardColor = (board: any) => {
-    if (board.color) {
-      return board.color;
-    }
-    // Fallback to ID-based color if no color in DB
-    const colors = [
-      "bg-purple-500",
-      "bg-blue-500",
-      "bg-pink-500",
-      "bg-green-500",
-      "bg-orange-500",
-      "bg-red-500",
-      "bg-indigo-500",
-      "bg-cyan-500",
-    ];
+    if (board.color) return board.color;
+    const colors = ["bg-purple-500", "bg-blue-500", "bg-pink-500", "bg-green-500", "bg-orange-500", "bg-red-500", "bg-indigo-500", "bg-cyan-500"];
     return colors[board.id % colors.length];
   };
 
-  // Fetch boards on mount
+  React.useEffect(() => { fetchBoards(); }, []);
+
   React.useEffect(() => {
-    fetchBoards();
-    // eslint-disable-next-line
-  }, []);
+    if (!popoverOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setPopoverOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [popoverOpen]);
 
   return (
-    <aside className="fixed left-6 top-6 bottom-6 z-40 w-64 max-w-[272px] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col p-4 font-sans">
-      {/* Logo/Title */}
-      <div className="mb-8 flex items-center gap-2">
-        <BrandLogo className="h-10 w-10" />
-        <span
-          className="font-semibold text-xl text-gray-900 tracking-tight"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          #getYourShitDone
-        </span>
+    <aside className="fixed left-6 top-6 bottom-6 z-40 w-64 max-w-[272px] flex flex-col rounded-2xl bg-primary shadow-xl ring-1 ring-primary">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 px-5 pt-5 pb-2">
+        <BrandLogo className="h-9 w-9 shrink-0" />
+        <span className="font-semibold text-md text-primary tracking-tight truncate">#getYourShitDone</span>
       </div>
-      {/* Navigation */}
-      <nav className="flex-1 flex flex-col">
-        <div className="flex-1">
-          {/* Boards Section */}
-          <div className="mb-8">
-            <div className="px-3 py-2 mb-3 flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Your Boards
-              </span>
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded border border-gray-300 bg-gray-50 text-xs font-semibold text-gray-700">
-                {boards.length}
-              </span>
-            </div>
-            <div className="px-3 py-2 mb-2">
-              <button
-                className="w-full px-2 py-1 rounded bg-primary-50 text-primary-700 text-xs font-semibold border border-primary-100 hover:bg-primary-100 transition"
-                onClick={() => setShowCreate(true)}
-                title="Create new board"
-              >
-                + New Board
-              </button>
-            </div>
-            <ul className="space-y-1">
-              {loadingBoards ? (
-                <li className="px-3 py-2 text-gray-400 text-sm">Loading...</li>
-              ) : boards.length === 0 ? (
-                <li className="px-3 py-2 text-gray-400 text-sm">No boards</li>
-              ) : (
-                boards.map((board) => {
-                  const slug = board.name.toLowerCase().replace(/\s+/g, "-");
-                  const boardColor = getBoardColor(board);
-                  return (
-                    <li key={board.id} className="px-1">
-                      <NavLink
-                        to={`/board/${slug}`}
-                        className={({ isActive }) =>
-                          `flex items-center justify-between px-3 py-2 rounded-lg font-medium text-sm transition ${
-                            isActive
-                              ? "bg-primary-50 text-primary-700"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`
-                        }
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div
-                            className={`w-2 h-2 rounded-full ${boardColor} flex-shrink-0`}
-                          />
-                          <span className="truncate">{board.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                          <span className="inline-flex items-center justify-center px-2 py-1 rounded border border-gray-300 bg-gray-50 text-xs font-semibold text-gray-700">
-                            {taskCounts[board.id] || 0}
-                          </span>
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            className="text-gray-400"
-                          >
-                            <path
-                              d="M6 12l4-4-4-4"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                      </NavLink>
-                    </li>
-                  );
-                })
-              )}
-            </ul>
+
+      {/* Nav */}
+      <nav className="flex flex-1 flex-col overflow-y-auto px-3 py-3">
+        {/* Boards */}
+        <div className="mb-2">
+          <div className="flex items-center justify-between px-3 py-1.5 mb-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-quaternary">Your Boards</span>
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded px-1 text-xs font-semibold text-quaternary ring-1 ring-primary">
+              {boards.length}
+            </span>
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-gray-200 my-6" />
-
-          {/* Settings Section */}
-          <div>
-            <div className="px-3 py-2 mb-3">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Settings
-              </span>
-            </div>
-            <ul className="space-y-1">
-              <li className="px-1">
-                <NavLink
-                  to="/profile"
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition ${
-                      isActive
-                        ? "bg-primary-50 text-primary-700"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`
-                  }
-                >
-                  <svg width="18" height="18" fill="none" viewBox="0 0 20 20">
-                    <path
-                      d="M10 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm0 1.25c-3.452 0-5 1.865-5 3.75v1.25h10v-1.25c0-1.885-1.548-3.75-5-3.75z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Profile
-                </NavLink>
-              </li>
-            </ul>
+          <div className="px-1 mb-2">
+            <Button color="tertiary" size="xs" iconLeading={Plus} className="w-full justify-start" onClick={() => setShowCreate(true)}>
+              New Board
+            </Button>
           </div>
+
+          <ul className="space-y-0.5">
+            {loadingBoards ? (
+              <li className="px-3 py-2 text-sm text-tertiary">Loading...</li>
+            ) : boards.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-tertiary">No boards yet</li>
+            ) : (
+              boards.map((board) => {
+                const slug = board.name.toLowerCase().replace(/\s+/g, "-");
+                return (
+                  <li key={board.id}>
+                    <NavLink
+                      to={`/board/${slug}`}
+                      className={({ isActive }) =>
+                        cx(
+                          "flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                          isActive ? "bg-active text-primary" : "text-secondary hover:bg-primary_hover hover:text-primary",
+                        )
+                      }
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className={`h-2 w-2 shrink-0 rounded-full ${getBoardColor(board)}`} />
+                        <span className="truncate">{board.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded px-1 text-xs font-semibold text-quaternary ring-1 ring-primary">
+                          {taskCounts[board.id] || 0}
+                        </span>
+                        <ChevronRight className="size-3.5 text-quaternary" />
+                      </div>
+                    </NavLink>
+                  </li>
+                );
+              })
+            )}
+          </ul>
         </div>
+
+        {/* Divider */}
+        <div className="my-2 h-px bg-secondary" />
+
+        {/* Settings */}
+        <ul className="space-y-0.5">
+          <li>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                cx(
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive ? "bg-active text-primary" : "text-secondary hover:bg-primary_hover hover:text-primary",
+                )
+              }
+            >
+              <Settings01 className="size-4 shrink-0 text-quaternary" />
+              Profile
+            </NavLink>
+          </li>
+        </ul>
       </nav>
-      <CreateBoardModal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={fetchBoards}
-      />
-      {/* User info bottom card with popover */}
-      <div className="mt-8 flex flex-col gap-2 px-1 relative select-none">
-        <div
-          ref={avatarRef}
-          className="flex items-center gap-4 p-2 rounded-2xl border border-gray-200 bg-white shadow-sm cursor-pointer hover:bg-gray-50 transition min-w-0"
-          tabIndex={0}
+
+      {/* User card */}
+      <div className="relative px-3 pb-3">
+        <button
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 ring-1 ring-primary hover:bg-primary_hover transition-colors text-left"
           onClick={() => setPopoverOpen((v) => !v)}
         >
-          <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 28 28"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle cx="14" cy="14" r="12" fill="#E0E7FF" />
-                <text
-                  x="14"
-                  y="19"
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill="#7C3AED"
-                >
-                  {user?.name?.[0] || "U"}
-                </text>
-              </svg>
-            </div>
-          </div>
+          <Avatar
+            size="sm"
+            initials={user?.name?.[0]?.toUpperCase() || "U"}
+            src={null}
+          />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-gray-900 truncate text-sm">
-              {user?.name}
-            </div>
-            <div className="text-xs text-gray-500 truncate">{user?.email}</div>
+            <div className="text-sm font-semibold text-primary truncate">{user?.name}</div>
+            <div className="text-xs text-tertiary truncate">{user?.email}</div>
           </div>
-        </div>
+        </button>
+
         {popoverOpen && (
           <div
             ref={popoverRef}
-            className="absolute left-0 right-0 bottom-16 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-3 flex flex-col gap-2 animate-fade-in"
-            style={{ minWidth: 220 }}
+            className="absolute left-3 right-3 bottom-full mb-2 z-50 rounded-xl bg-primary shadow-lg ring-1 ring-primary p-1.5"
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex-1 min-w-0">
-                <div
-                  className="font-medium text-gray-900 text-sm truncate"
-                  style={{ fontFamily: "Inter, sans-serif" }}
-                >
-                  {user?.name || user?.email}
-                </div>
-                <div className="text-xs text-gray-500 truncate">
-                  {user?.email}
-                </div>
-              </div>
-            </div>
             <button
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                logout();
-              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-error-primary hover:bg-error-primary transition-colors"
+              onClick={(e) => { e.preventDefault(); logout(); }}
             >
-              <svg width="18" height="18" fill="none" viewBox="0 0 18 18">
-                <path
-                  d="M11.25 6.75L13.5 9m0 0l-2.25 2.25M13.5 9H7.5m-3 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <LogOut01 className="size-4 shrink-0" />
               Logout
             </button>
           </div>
         )}
       </div>
+
+      <CreateBoardModal
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={fetchBoards}
+      />
     </aside>
   );
 };
