@@ -11,6 +11,10 @@ import {
   closestCenter,
   DragEndEvent,
   DragOverlay,
+  useSensors,
+  useSensor,
+  PointerSensor,
+  TouchSensor,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -46,6 +50,11 @@ const getBoardColor = (board: any) => {
 
 type TasksBoardProps = { boardSlug?: string };
 const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -370,9 +379,19 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
         confirmText="Delete Board"
       />
       <DndContext
+        sensors={sensors}
         collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        onDragStart={(e) => setActiveTaskId(e.active.id as string)}
+        onDragStart={(e) => {
+          setActiveTaskId(e.active.id as string);
+          document.body.style.cursor = "grabbing";
+        }}
+        onDragEnd={(e) => {
+          document.body.style.cursor = "";
+          handleDragEnd(e);
+        }}
+        onDragCancel={() => {
+          document.body.style.cursor = "";
+        }}
       >
         <ConfirmPriorityModal
           open={showPriorityModal}
