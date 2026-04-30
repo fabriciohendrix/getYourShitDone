@@ -48,25 +48,15 @@
 - `npm run db:migrate` – Runs migrations
 - `npm run db:seed` – Seeds the database with sample data
 
-## Future Deployment
+## Production Infra
 
-- **Supabase:** Create a project and configure `DATABASE_URL` in the backend.
-- **Vercel:** Deploy the frontend.
-- **Railway/Render:** Deploy the backend.
-- **Variables:**
-  - Backend: `DATABASE_URL`, `JWT_SECRET`, `PORT`
-  - Frontend: `VITE_API_URL`
-- **Domain:** Set up a custom domain on the platforms.
-
-## Notes
-
-- Stateless backend (JWT, no in-memory sessions)
-- Frontend uses `VITE_` env vars
-- Typed TypeScript code
-- Validation with zod
-- Toasts with `react-hot-toast`
-- Drag-and-drop with `@dnd-kit/core`
+| Layer    | Service  |
+| -------- | -------- |
+| Frontend | Vercel   |
+| Backend  | Render   |
+| Database | Supabase |
 
 ---
 
-> Questions? See code comments and example scripts.
+> Questions? See code comments and example scripts 😁
+> Made with love for hateful tasks ❤️
