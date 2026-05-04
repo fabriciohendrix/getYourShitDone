@@ -375,8 +375,10 @@ const TasksBoard = ({ boardSlug }: TasksBoardProps) => {
         open={showDeleteBoardModal}
         onClose={() => setShowDeleteBoardModal(false)}
         onConfirm={handleDeleteBoard}
-        message={`Are you sure you want to delete the board "${board?.name}"? This will also delete all tasks in this board.`}
+        title="Delete board"
+        message={`Are you sure you want to delete "${board?.name}"? All tasks in this board will also be deleted.`}
         confirmText="Delete Board"
+        destructive
       />
       <DndContext
         sensors={sensors}

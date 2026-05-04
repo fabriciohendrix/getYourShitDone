@@ -157,7 +157,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
           setShowConfirm(false);
           onDelete(task.id);
         }}
-        message="Are you sure you want to delete this task?"
+        title="Delete task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
         destructive
