@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/insurances-dashboard/:path*",
+      "destination": "https://insurance-dashboard-ashy.vercel.app/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }
